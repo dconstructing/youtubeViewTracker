@@ -2,11 +2,6 @@
 
 import readline from 'readline';
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
 export function extractVideoId(url: string): string | null {
   // Handle different YouTube URL formats
   const patterns: RegExp[] = [
@@ -33,9 +28,15 @@ export function extractVideoId(url: string): string | null {
 }
 
 export function promptForUrl(): void {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
   rl.question('Enter YouTube Live stream URL: ', (url: string) => {
     if (!url.trim()) {
       console.log('Error: Please enter a valid URL');
+      rl.close();
       promptForUrl();
       return;
     }

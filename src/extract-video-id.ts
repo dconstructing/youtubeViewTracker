@@ -7,9 +7,9 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-function extractVideoId(url) {
+export function extractVideoId(url: string): string | null {
   // Handle different YouTube URL formats
-  const patterns = [
+  const patterns: RegExp[] = [
     // Standard watch URLs: https://www.youtube.com/watch?v=VIDEO_ID
     /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
     // Short URLs: https://youtu.be/VIDEO_ID
@@ -32,8 +32,8 @@ function extractVideoId(url) {
   return null;
 }
 
-function promptForUrl() {
-  rl.question('Enter YouTube Live stream URL: ', (url) => {
+export function promptForUrl(): void {
+  rl.question('Enter YouTube Live stream URL: ', (url: string) => {
     if (!url.trim()) {
       console.log('Error: Please enter a valid URL');
       promptForUrl();
@@ -54,12 +54,10 @@ function promptForUrl() {
   });
 }
 
-// Export for testing
-export { extractVideoId };
-
-// Run CLI if this is the main module
-if (import.meta.url === `file://${process.argv[1]}`) {
-  console.log('YouTube Live Stream Video ID Extractor');
-  console.log('=====================================');
-  promptForUrl();
-}
+// Run CLI - will be handled by build script
+// This is temporarily commented out for testing compatibility
+// if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+//   console.log('YouTube Live Stream Video ID Extractor');
+//   console.log('=====================================');
+//   promptForUrl();
+// }

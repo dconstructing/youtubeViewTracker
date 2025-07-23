@@ -1,15 +1,25 @@
-# YouTube Live Stream Video ID Extractor
+# YouTube View Tracker
 
-A TypeScript CLI tool that extracts YouTube Video IDs from various YouTube URL formats. This tool is designed to help developers and content creators quickly parse YouTube URLs and obtain the unique Video ID needed for YouTube Data API calls.
+A comprehensive TypeScript toolkit for YouTube video analysis, featuring Video ID extraction and viewership data tracking. This tool helps developers and content creators analyze YouTube videos by extracting Video IDs from URLs and fetching detailed viewership statistics via the YouTube Data API v3.
 
 ## Features
 
+### Video ID Extraction
 - ✅ **Multiple URL Format Support**: Handles standard watch URLs, short URLs, embed URLs, live URLs, and mobile URLs
-- ✅ **TypeScript**: Fully typed with strict TypeScript configuration
-- ✅ **ES Modules**: Modern JavaScript module system
 - ✅ **Comprehensive Testing**: 11 test cases covering all URL formats and edge cases
 - ✅ **CLI Interface**: Interactive command-line interface
-- ✅ **API Integration Ready**: Outputs ready-to-use YouTube Data API URLs
+
+### Viewership Tracking
+- ✅ **Real Viewership Data**: Fetches final view counts, likes, comments from YouTube Data API v3
+- ✅ **Secure API Key Management**: Environment variable support with .env file integration
+- ✅ **JSON Reports**: Automatically generated timestamped reports with video ID in filename
+- ✅ **CLI Tool**: Easy-to-use command-line interface for quick data extraction
+- ✅ **Comprehensive Testing**: 28 test cases covering API interactions and edge cases
+
+### Technical Excellence
+- ✅ **TypeScript**: Fully typed with strict TypeScript configuration
+- ✅ **ES Modules**: Modern JavaScript module system
+- ✅ **Error Handling**: Robust error handling for API failures and invalid inputs
 
 ## Supported YouTube URL Formats
 
@@ -27,6 +37,7 @@ A TypeScript CLI tool that extracts YouTube Video IDs from various YouTube URL f
 
 - Node.js (version 16 or higher)
 - npm
+- YouTube Data API v3 key (for viewership tracking)
 
 ### Setup
 
@@ -41,14 +52,63 @@ A TypeScript CLI tool that extracts YouTube Video IDs from various YouTube URL f
    npm install
    ```
 
-3. Build the project:
+3. Set up your YouTube API key:
+   ```bash
+   cp .env.example .env
+   # Edit .env and add your YouTube Data API v3 key
+   ```
+
+4. Build the project:
    ```bash
    npm run build
    ```
 
+### YouTube API Setup
+
+1. Go to the [Google Cloud Console](https://console.developers.google.com/)
+2. Create a new project or select an existing one
+3. Enable the YouTube Data API v3
+4. Create credentials (API key)
+5. Add your API key to the `.env` file:
+   ```
+   YOUTUBE_API_KEY=your_api_key_here
+   ```
+
 ## Usage
 
-### Interactive CLI
+### Viewership Tracking (Primary Feature)
+
+Track YouTube video viewership data and generate detailed JSON reports:
+
+```bash
+npm run viewership
+```
+
+**Interactive mode:**
+```
+Enter YouTube URL or Video ID: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+Processing video ID: dQw4w9WgXcQ
+Fetching viewership data...
+✅ Viewership data saved to: data/viewership-dQw4w9WgXcQ-2025-07-23T02-52-24-076Z.json
+
+📊 Summary:
+Title: Rick Astley - Never Gonna Give You Up
+Channel: RickAstleyVEVO
+View Count: 1,234,567,890
+Like Count: 12,345,678
+Comment Count: 1,234,567
+Published: 10/25/2009
+Retrieved: 7/22/2025, 8:52:24 PM
+```
+
+**Command line argument:**
+```bash
+npm run viewership -- "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+# or with just the video ID:
+npm run viewership -- "dQw4w9WgXcQ"
+```
+
+### Video ID Extraction
 
 Run the interactive CLI to extract Video IDs:
 
@@ -60,25 +120,26 @@ The CLI will prompt you to enter a YouTube URL and will output:
 - The extracted Video ID
 - A ready-to-use YouTube Data API URL
 
-**Example interaction:**
-```
-YouTube Live Stream Video ID Extractor
-=====================================
-Enter YouTube Live stream URL: https://www.youtube.com/watch?v=dQw4w9WgXcQ
-
-Extracted Video ID: dQw4w9WgXcQ
-API URL: https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails,statistics,snippet&id=dQw4w9WgXcQ&key={YOUR_API_KEY}
-```
-
 ### Programmatic Usage
 
-You can also import and use the extraction function in your own TypeScript/JavaScript code:
+Import and use the functions in your own TypeScript/JavaScript code:
 
 ```typescript
 import { extractVideoId } from './dist/extract-video-id.js';
+import { createViewershipReport, ViewershipTracker } from './dist/viewership-tracker.js';
 
+// Extract Video ID
 const videoId = extractVideoId('https://youtu.be/dQw4w9WgXcQ');
 console.log(videoId); // Output: dQw4w9WgXcQ
+
+// Get viewership data
+const reportPath = await createViewershipReport(videoId);
+console.log(`Report saved to: ${reportPath}`);
+
+// Or use the class directly
+const tracker = new ViewershipTracker(); // Uses YOUTUBE_API_KEY env var
+const stats = await tracker.fetchVideoStatistics(videoId);
+console.log(`Views: ${stats.viewCount}`);
 ```
 
 ## Development
@@ -89,8 +150,9 @@ console.log(videoId); // Output: dQw4w9WgXcQ
 |---------|-------------|
 | `npm run build` | Compile TypeScript to JavaScript |
 | `npm run dev` | Watch mode compilation |
-| `npm start` | Run the compiled CLI application |
-| `npm test` | Run the test suite |
+| `npm start` | Run the video ID extraction CLI |
+| `npm run viewership` | Run the viewership tracking CLI |
+| `npm test` | Run the test suite (28 tests) |
 | `npm run typecheck` | Type checking without compilation |
 
 ### Project Structure
@@ -98,25 +160,32 @@ console.log(videoId); // Output: dQw4w9WgXcQ
 ```
 youtubeViewTracker/
 ├── src/
-│   ├── extract-video-id.ts      # Main extraction logic
-│   ├── extract-video-id.test.ts # Test suite
-│   └── cli.ts                   # CLI entry point
-├── dist/                        # Compiled JavaScript output
-├── tsconfig.json               # TypeScript configuration
-├── jest.config.js              # Jest testing configuration
-├── package.json                # Project dependencies and scripts
-└── README.md                   # This file
+│   ├── extract-video-id.ts         # Video ID extraction logic
+│   ├── extract-video-id.test.ts    # Video ID extraction tests
+│   ├── viewership-tracker.ts       # Viewership data fetching
+│   ├── viewership-tracker.test.ts  # Viewership tracking tests
+│   ├── viewership-cli.ts           # Viewership CLI entry point
+│   └── cli.ts                      # Video ID extraction CLI
+├── data/                           # Generated viewership reports (gitignored)
+├── dist/                           # Compiled JavaScript output
+├── .env.example                    # API key template
+├── tsconfig.json                   # TypeScript configuration
+├── jest.config.js                  # Jest testing configuration
+├── package.json                    # Project dependencies and scripts
+└── README.md                       # This file
 ```
 
 ### Running Tests
 
-The project includes comprehensive tests covering all URL formats and edge cases:
+The project includes comprehensive tests covering all functionality:
 
 ```bash
 npm test
 ```
 
-**Test Coverage:**
+**Test Coverage (28 total tests):**
+
+*Video ID Extraction (11 tests):*
 - ✅ Standard watch URLs
 - ✅ Short URLs (youtu.be)
 - ✅ Embed URLs
@@ -127,18 +196,33 @@ npm test
 - ✅ Invalid URL handling
 - ✅ Different Video ID formats
 
-## API Integration
+*Viewership Tracking (17 tests):*
+- ✅ API key management (environment variables)
+- ✅ YouTube API integration
+- ✅ Error handling (network failures, invalid videos)
+- ✅ JSON report generation
+- ✅ File system operations
+- ✅ Timestamp formatting
+- ✅ Custom output directories
 
-The extracted Video ID can be used with the YouTube Data API v3 to fetch:
+## JSON Report Format
 
-- **Live Stream Details**: Concurrent viewers, scheduled times
-- **Video Statistics**: View count, like count, comment count
-- **Video Metadata**: Title, description, thumbnails
+Generated viewership reports contain comprehensive video data:
 
-**Example API call:**
-```bash
-curl "https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails,statistics,snippet&id=VIDEO_ID&key=YOUR_API_KEY"
+```json
+{
+  "videoId": "dQw4w9WgXcQ",
+  "title": "Rick Astley - Never Gonna Give You Up",
+  "channelTitle": "RickAstleyVEVO",
+  "publishedAt": "2009-10-25T06:57:33Z",
+  "viewCount": "1234567890",
+  "likeCount": "12345678",
+  "commentCount": "1234567",
+  "retrievedAt": "2025-07-23T02:52:24.076Z"
+}
 ```
+
+Reports are automatically saved as: `data/viewership-{videoId}-{timestamp}.json`
 
 ## Contributing
 
@@ -154,9 +238,11 @@ curl "https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails,sta
 ## Requirements
 
 - All code must be written in TypeScript
-- Tests must pass before committing
+- Tests must pass before committing (all 28 tests)
 - Follow the existing code style and conventions
 - Update tests when adding new functionality
+- API keys must be managed via environment variables (.env file)
+- Never commit API keys or generated data files to the repository
 
 ## License
 

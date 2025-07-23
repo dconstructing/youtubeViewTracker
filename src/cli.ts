@@ -7,7 +7,7 @@ import readline from 'readline';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  
+
   if (args.length === 0) {
     await promptForInput();
   } else {
@@ -19,10 +19,10 @@ async function main(): Promise<void> {
 async function promptForInput(): Promise<void> {
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     rl.question('Enter YouTube URL or Video ID: ', async (input: string) => {
       rl.close();
       await processInput(input.trim());
@@ -49,39 +49,47 @@ async function processInput(input: string): Promise<void> {
 
   if (!videoId) {
     console.error('Error: Could not extract Video ID from the provided input');
-    console.error('Please provide a valid YouTube URL or 11-character Video ID');
+    console.error(
+      'Please provide a valid YouTube URL or 11-character Video ID'
+    );
     process.exit(1);
   }
 
   try {
     console.log(`Processing video ID: ${videoId}`);
     console.log('Fetching viewership data...');
-    
+
     const outputPath = await createViewershipReport(videoId);
-    
+
     console.log(`✅ Viewership data saved to: ${outputPath}`);
-    
+
     // Read and display summary
     const fs = await import('fs/promises');
     const data = JSON.parse(await fs.readFile(outputPath, 'utf-8'));
-    
+
     console.log('\n📊 Summary:');
     console.log(`Title: ${data.title}`);
     console.log(`Channel: ${data.channelTitle}`);
     console.log(`View Count: ${parseInt(data.viewCount).toLocaleString()}`);
     console.log(`Like Count: ${parseInt(data.likeCount).toLocaleString()}`);
-    console.log(`Comment Count: ${parseInt(data.commentCount).toLocaleString()}`);
-    console.log(`Published: ${new Date(data.publishedAt).toLocaleDateString()}`);
+    console.log(
+      `Comment Count: ${parseInt(data.commentCount).toLocaleString()}`
+    );
+    console.log(
+      `Published: ${new Date(data.publishedAt).toLocaleDateString()}`
+    );
     console.log(`Retrieved: ${new Date(data.retrievedAt).toLocaleString()}`);
-    
   } catch (error) {
-    console.error('Error fetching viewership data:', error instanceof Error ? error.message : String(error));
+    console.error(
+      'Error fetching viewership data:',
+      error instanceof Error ? error.message : String(error)
+    );
     process.exit(1);
   }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
+  main().catch(error => {
     console.error('Unexpected error:', error);
     process.exit(1);
   });

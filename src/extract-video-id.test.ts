@@ -27,7 +27,8 @@ describe('extractVideoId', () => {
   });
 
   test('handles URLs with additional parameters', () => {
-    const url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10s&list=PLI5YfMzCfRtZ8eV576YoY3vIYrHjyVm_e';
+    const url =
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10s&list=PLI5YfMzCfRtZ8eV576YoY3vIYrHjyVm_e';
     expect(extractVideoId(url)).toBe('dQw4w9WgXcQ');
   });
 
@@ -53,7 +54,9 @@ describe('extractVideoId', () => {
   });
 
   test('handles different video ID formats', () => {
-    expect(extractVideoId('https://www.youtube.com/watch?v=ABC123def_-')).toBe('ABC123def_-');
+    expect(extractVideoId('https://www.youtube.com/watch?v=ABC123def_-')).toBe(
+      'ABC123def_-'
+    );
     expect(extractVideoId('https://youtu.be/Z1bcYjVJpNU')).toBe('Z1bcYjVJpNU');
   });
 });

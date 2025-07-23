@@ -14,7 +14,7 @@ export function extractVideoId(url: string): string | null {
     // Live URLs: https://www.youtube.com/live/VIDEO_ID
     /(?:youtube\.com\/live\/)([a-zA-Z0-9_-]{11})/,
     // Mobile URLs: https://m.youtube.com/watch?v=VIDEO_ID
-    /(?:m\.youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/
+    /(?:m\.youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
   ];
 
   for (const pattern of patterns) {
@@ -30,7 +30,7 @@ export function extractVideoId(url: string): string | null {
 export function promptForUrl(): void {
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
   rl.question('Enter YouTube Live stream URL: ', (url: string) => {
@@ -42,15 +42,17 @@ export function promptForUrl(): void {
     }
 
     const videoId = extractVideoId(url.trim());
-    
+
     if (videoId) {
       console.log(`\nExtracted Video ID: ${videoId}`);
-      console.log(`API URL: https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails,statistics,snippet&id=${videoId}&key={YOUR_API_KEY}`);
+      console.log(
+        `API URL: https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails,statistics,snippet&id=${videoId}&key={YOUR_API_KEY}`
+      );
     } else {
       console.log('Error: Could not extract Video ID from the provided URL');
       console.log('Please ensure the URL is a valid YouTube URL');
     }
-    
+
     rl.close();
   });
 }

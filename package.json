@@ -4,12 +4,15 @@
   "description": "",
   "main": "dist/extract-video-id.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run format && tsc",
     "dev": "tsc --watch",
-    "start": "tsc && node dist/cli.js",
-    "extract": "tsc && node dist/extract-cli.js",
-    "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "start": "npm run format && tsc && node dist/cli.js",
+    "extract": "npm run format && tsc && node dist/extract-cli.js",
+    "test": "npm run format && jest",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -18,11 +21,21 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.15",
+    "@typescript-eslint/parser": "^8.38.0",
+    "husky": "^9.1.7",
     "jest": "^30.0.4",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "dotenv": "^17.2.0"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "prettier --write",
+      "git add"
+    ]
   }
 }

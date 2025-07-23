@@ -81,7 +81,7 @@ A comprehensive TypeScript toolkit for YouTube video analysis, featuring Video I
 Track YouTube video viewership data and generate detailed JSON reports:
 
 ```bash
-npm run viewership
+npm start
 ```
 
 **Interactive mode:**
@@ -103,17 +103,17 @@ Retrieved: 7/22/2025, 8:52:24 PM
 
 **Command line argument:**
 ```bash
-npm run viewership -- "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+npm start -- "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 # or with just the video ID:
-npm run viewership -- "dQw4w9WgXcQ"
+npm start -- "dQw4w9WgXcQ"
 ```
 
-### Video ID Extraction
+### Video ID Extraction (Alternative Feature)
 
-Run the interactive CLI to extract Video IDs:
+Run the interactive CLI to extract Video IDs only:
 
 ```bash
-npm start
+npm run extract
 ```
 
 The CLI will prompt you to enter a YouTube URL and will output:
@@ -150,8 +150,8 @@ console.log(`Views: ${stats.viewCount}`);
 |---------|-------------|
 | `npm run build` | Compile TypeScript to JavaScript |
 | `npm run dev` | Watch mode compilation |
-| `npm start` | Run the video ID extraction CLI |
-| `npm run viewership` | Run the viewership tracking CLI |
+| `npm start` | Run the viewership tracking CLI (primary feature) |
+| `npm run extract` | Run the video ID extraction CLI |
 | `npm test` | Run the test suite (28 tests) |
 | `npm run typecheck` | Type checking without compilation |
 
@@ -164,8 +164,8 @@ youtubeViewTracker/
 │   ├── extract-video-id.test.ts    # Video ID extraction tests
 │   ├── viewership-tracker.ts       # Viewership data fetching
 │   ├── viewership-tracker.test.ts  # Viewership tracking tests
-│   ├── viewership-cli.ts           # Viewership CLI entry point
-│   └── cli.ts                      # Video ID extraction CLI
+│   ├── cli.ts                      # Primary CLI: Viewership tracking
+│   └── extract-cli.ts              # Alternative CLI: Video ID extraction
 ├── data/                           # Generated viewership reports (gitignored)
 ├── dist/                           # Compiled JavaScript output
 ├── .env.example                    # API key template

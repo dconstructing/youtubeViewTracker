@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "start": "node dist/cli.js",
-    "viewership": "tsc && node dist/viewership-cli.js",
+    "start": "tsc && node dist/cli.js",
+    "extract": "tsc && node dist/extract-cli.js",
     "test": "jest",
     "typecheck": "tsc --noEmit"
   },

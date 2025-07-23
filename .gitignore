@@ -108,6 +108,9 @@ Temporary Items
 *.swo
 *~
 
+# Generated data files
+data/
+
 # OS generated files
 Thumbs.db
 ehthumbs.db

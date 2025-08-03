@@ -63,7 +63,7 @@ async function processInput(input: string): Promise<void> {
 
     console.log(`✅ Viewership data saved to: ${outputPath}`);
 
-    // Read and display summary
+    // Read and display data
     const fs = await import('fs/promises');
     const data = JSON.parse(await fs.readFile(outputPath, 'utf-8'));
 
@@ -79,6 +79,9 @@ async function processInput(input: string): Promise<void> {
       `Published: ${new Date(data.publishedAt).toLocaleDateString()}`
     );
     console.log(`Retrieved: ${new Date(data.retrievedAt).toLocaleString()}`);
+
+    console.log('\n📄 Full JSON Data:');
+    console.log(JSON.stringify(data, null, 2));
   } catch (error) {
     console.error(
       'Error fetching viewership data:',

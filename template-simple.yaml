@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: YouTube Viewership Tracker API
+
+Parameters:
+  YouTubeApiKey:
+    Type: String
+    Description: YouTube Data API v3 key
+    NoEcho: true
+    Default: ''
+
+Resources:
+  ViewershipTrackerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/
+      Handler: lambda-handler.handler
+      Runtime: nodejs18.x
+      Timeout: 30
+      Environment:
+        Variables:
+          YOUTUBE_API_KEY: !Ref YouTubeApiKey
+      Events:
+        GetViewership:
+          Type: HttpApi
+          Properties:
+            Path: /viewership
+            Method: get
+        PostViewership:
+          Type: HttpApi
+          Properties:
+            Path: /viewership
+            Method: post
+        OptionsViewership:
+          Type: HttpApi
+          Properties:
+            Path: /viewership
+            Method: options
+
+Outputs:
+  ViewershipTrackerApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"

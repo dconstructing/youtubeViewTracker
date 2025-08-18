@@ -111,6 +111,15 @@ Temporary Items
 # Generated data files
 data/
 
+# AWS SAM and deployment artifacts
+.aws-sam/
+samconfig.toml
+.serverless/
+
+# AWS deployment artifacts (if any)
+*.zip
+cloudformation-output.json
+
 # OS generated files
 Thumbs.db
 ehthumbs.db

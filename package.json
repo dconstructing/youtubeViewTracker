@@ -5,6 +5,7 @@
   "main": "dist/extract-video-id.js",
   "scripts": {
     "build": "npm run format && tsc",
+    "build:lambda": "npm run format && tsc -p tsconfig.serverless.json",
     "dev": "tsc --watch",
     "start": "npm run format && tsc && node dist/cli.js",
     "extract": "npm run format && tsc && node dist/extract-cli.js",
@@ -12,13 +13,16 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deploy:sam": "npm run build:lambda && sam deploy --template-file template-simple.yaml --stack-name youtube-viewership-tracker --capabilities CAPABILITY_IAM --parameter-overrides YouTubeApiKey=$YOUTUBE_API_KEY --profile PowerUserAccess-316490106252 --resolve-s3",
+    "deploy:sam:admin": "npm run build:lambda && sam deploy --template-file template-simple.yaml --stack-name youtube-viewership-tracker --capabilities CAPABILITY_IAM --parameter-overrides YouTubeApiKey=$YOUTUBE_API_KEY --profile admin --resolve-s3"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.152",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.15",
     "@typescript-eslint/parser": "^8.38.0",
@@ -30,7 +34,8 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "dotenv": "^17.2.0"
+    "dotenv": "^17.2.0",
+    "tslib": "^2.8.1"
   },
   "lint-staged": {
     "src/**/*.ts": [

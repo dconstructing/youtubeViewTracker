@@ -1,6 +1,8 @@
 # YouTube View Tracker
 
-A comprehensive TypeScript toolkit for YouTube video analysis, featuring Video ID extraction and viewership data tracking. This tool helps developers and content creators analyze YouTube videos by extracting Video IDs from URLs and fetching detailed viewership statistics via the YouTube Data API v3.
+Hosted at: https://dconstructing.github.io/youtubeViewTracker/
+
+A simple TypeScript tool for extracting viewership statistics from YouTube videos. The tool extracts Video IDs from YouTube URLs and fetches basic viewership data (views, likes, comments) via the YouTube Data API v3.
 
 ## Features
 
@@ -10,18 +12,18 @@ A comprehensive TypeScript toolkit for YouTube video analysis, featuring Video I
 - ✅ **CLI Interface**: Interactive command-line interface
 
 ### Viewership Tracking
-- ✅ **Real Viewership Data**: Fetches final view counts, likes, comments from YouTube Data API v3
-- ✅ **Secure API Key Management**: Environment variable support with .env file integration
-- ✅ **JSON Reports**: Automatically generated timestamped reports with video ID in filename
-- ✅ **CLI Tool**: Easy-to-use command-line interface for quick data extraction
-- ✅ **Web Interface**: Modern web frontend with AWS Lambda backend
+- ✅ **Basic Stats**: Fetches view counts, likes, and comments from YouTube Data API v3
+- ✅ **API Key Management**: Environment variable support with .env file integration
+- ✅ **JSON Output**: Generated timestamped reports with video ID in filename
+- ✅ **CLI Tool**: Command-line interface for data extraction
+- ✅ **Web Interface**: Simple web frontend with AWS Lambda backend
 - ✅ **AWS Lambda Deployment**: Serverless backend with SAM deployment
-- ✅ **Comprehensive Testing**: 28 test cases covering API interactions and edge cases
+- ✅ **Testing**: 28 test cases covering functionality
 
-### Technical Excellence
+### Technical Details
 - ✅ **TypeScript**: Fully typed with strict TypeScript configuration
 - ✅ **ES Modules**: Modern JavaScript module system
-- ✅ **Error Handling**: Robust error handling for API failures and invalid inputs
+- ✅ **Error Handling**: Basic error handling for API failures and invalid inputs
 
 ## Supported YouTube URL Formats
 
@@ -82,7 +84,7 @@ A comprehensive TypeScript toolkit for YouTube video analysis, featuring Video I
 
 ### Viewership Tracking (Primary Feature)
 
-Track YouTube video viewership data and generate detailed JSON reports:
+Extract YouTube video statistics and generate JSON reports:
 
 ```bash
 npm start
@@ -92,8 +94,8 @@ npm start
 ```
 Enter YouTube URL or Video ID: https://www.youtube.com/watch?v=dQw4w9WgXcQ
 Processing video ID: dQw4w9WgXcQ
-Fetching viewership data...
-✅ Viewership data saved to: data/viewership-dQw4w9WgXcQ-2025-07-23T02-52-24-076Z.json
+Fetching data...
+✅ Data saved to: data/viewership-dQw4w9WgXcQ-2025-07-23T02-52-24-076Z.json
 
 📊 Summary:
 Title: Rick Astley - Never Gonna Give You Up

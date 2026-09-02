@@ -1,0 +1,136 @@
+name: CI & Deploy
+
+# Runs the full CI gate on every PR into master, and on pushes to master
+# (i.e. when a PR merges). On master the deploy jobs run automatically,
+# but only after the CI gate (test job) passes.
+on:
+  pull_request:
+    branches: ["master"]
+  push:
+    branches: ["master"]
+  # Allows a manual (re)deploy from the Actions tab.
+  workflow_dispatch:
+
+# Least privilege by default; deploy jobs elevate what they specifically need.
+permissions:
+  contents: read
+
+jobs:
+  # --- CI gate: runs for PRs, pushes to master, and manual dispatches ---
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build Lambda bundle
+        run: npm run build:lambda
+
+      - name: Run tests
+        run: npx jest
+
+  # --- Deploy the static frontend to GitHub Pages (master only) ---
+  deploy-frontend:
+    name: Deploy frontend (GitHub Pages)
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # Allow only one concurrent Pages deployment; never cancel an in-progress
+    # production deploy.
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./web"
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # --- Deploy the AWS Lambda backend via SAM (master only) ---
+  deploy-backend:
+    name: Deploy backend (AWS Lambda)
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Required for requesting the OIDC token used to assume the AWS role.
+      id-token: write
+    environment: production
+    # One backend deploy at a time; don't cancel an in-flight deploy.
+    concurrency:
+      group: "deploy-backend"
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Lambda bundle
+        run: npm run build:lambda
+
+      - name: Setup AWS SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: SAM deploy
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: |
+          sam deploy \
+            --template-file template-simple.yaml \
+            --stack-name youtube-viewership-tracker \
+            --capabilities CAPABILITY_IAM \
+            --parameter-overrides "YouTubeApiKey=$YOUTUBE_API_KEY" \
+            --region "${{ vars.AWS_REGION }}" \
+            --resolve-s3 \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset

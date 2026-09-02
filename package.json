@@ -15,7 +15,9 @@
     "format:check": "prettier --check \"src/**/*.ts\"",
     "prepare": "husky",
     "deploy:sam": "npm run build:lambda && sam deploy --template-file template-simple.yaml --stack-name youtube-viewership-tracker --capabilities CAPABILITY_IAM --parameter-overrides YouTubeApiKey=$YOUTUBE_API_KEY --profile PowerUserAccess-316490106252 --resolve-s3",
-    "deploy:sam:admin": "npm run build:lambda && sam deploy --template-file template-simple.yaml --stack-name youtube-viewership-tracker --capabilities CAPABILITY_IAM --parameter-overrides YouTubeApiKey=$YOUTUBE_API_KEY --profile admin --resolve-s3"
+    "deploy:sam:admin": "npm run build:lambda && sam deploy --template-file template-simple.yaml --stack-name youtube-viewership-tracker --capabilities CAPABILITY_IAM --parameter-overrides YouTubeApiKey=$YOUTUBE_API_KEY --profile admin --resolve-s3",
+    "dev:cloudflare": "wrangler dev -c wrangler.toml",
+    "deploy:cloudflare": "npm test && wrangler deploy -c wrangler.toml"
   },
   "keywords": [],
   "author": "",
@@ -31,7 +33,8 @@
     "lint-staged": "^16.1.2",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "wrangler": "^4.128.0"
   },
   "dependencies": {
     "dotenv": "^17.2.0",

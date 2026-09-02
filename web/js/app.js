@@ -1,5 +1,5 @@
-// Configuration - Update this with your deployed Lambda URL
-const API_BASE_URL = 'https://293sk7u4e3.execute-api.us-east-2.amazonaws.com/viewership';
+// Configuration - deployed Cloudflare Worker endpoint
+const API_BASE_URL = 'https://youtube-viewership-tracker.losttime-shuffle.workers.dev/viewership';
 
 // DOM elements
 const videoForm = document.getElementById('video-form');
@@ -25,7 +25,13 @@ let currentData = null;
 
 // Utility functions
 function formatNumber(num) {
-    return parseInt(num).toLocaleString();
+    // The API returns null for counts YouTube doesn't report (e.g. likes
+    // hidden or comments disabled) - show "Unknown" rather than a false 0.
+    if (num === null || num === undefined) {
+        return 'Unknown';
+    }
+    const parsed = parseInt(num, 10);
+    return Number.isNaN(parsed) ? 'Unknown' : parsed.toLocaleString();
 }
 
 function formatDate(dateString) {

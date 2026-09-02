@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { extractVideoId } from './extract-video-id';
-import { VideoStatistics, YouTubeApiResponse } from './viewership-tracker';
+import { fetchVideoStatistics } from './youtube-stats';
+import type { VideoStatistics } from './youtube-stats';
 
 interface LambdaRequestBody {
   url?: string;
@@ -11,51 +12,6 @@ interface LambdaResponse {
   success: boolean;
   data?: VideoStatistics;
   error?: string;
-}
-
-class LambdaViewershipTracker {
-  private apiKey: string;
-
-  constructor() {
-    this.apiKey = process.env.YOUTUBE_API_KEY || '';
-
-    if (!this.apiKey) {
-      throw new Error(
-        'YouTube API key is required. Set YOUTUBE_API_KEY environment variable.'
-      );
-    }
-  }
-
-  async fetchVideoStatistics(videoId: string): Promise<VideoStatistics> {
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoId}&key=${this.apiKey}`;
-
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(
-        `YouTube API request failed: ${response.status} ${response.statusText}`
-      );
-    }
-
-    const data = (await response.json()) as YouTubeApiResponse;
-
-    if (!data.items || data.items.length === 0) {
-      throw new Error(`Video not found or not accessible: ${videoId}`);
-    }
-
-    const video = data.items[0];
-
-    return {
-      videoId,
-      title: video.snippet.title,
-      channelTitle: video.snippet.channelTitle,
-      publishedAt: video.snippet.publishedAt,
-      viewCount: video.statistics.viewCount,
-      likeCount: video.statistics.likeCount,
-      commentCount: video.statistics.commentCount,
-      retrievedAt: new Date().toISOString(),
-    };
-  }
 }
 
 const corsHeaders = {
@@ -128,8 +84,13 @@ export const handler = async (
     }
 
     // Fetch video statistics
-    const tracker = new LambdaViewershipTracker();
-    const statistics = await tracker.fetchVideoStatistics(videoId);
+    const apiKey = process.env.YOUTUBE_API_KEY || '';
+    if (!apiKey) {
+      throw new Error(
+        'YouTube API key is required. Set YOUTUBE_API_KEY environment variable.'
+      );
+    }
+    const statistics = await fetchVideoStatistics(videoId, apiKey);
 
     const response: LambdaResponse = {
       success: true,

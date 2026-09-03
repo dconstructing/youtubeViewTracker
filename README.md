@@ -366,6 +366,83 @@ its cost.
 - The Worker exposes the same endpoints as the Lambda: `GET`/`POST`/`OPTIONS` on
   `/viewership`.
 
+## Continuous Integration & Deployment
+
+CI/CD runs through a single GitHub Actions workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+| Trigger | What runs |
+|---------|-----------|
+| Pull request into `master` | CI gate only: `format:check` → `typecheck` → `build:lambda` → `jest` |
+| Push to `master` (PR merge) | CI gate, then — only if it passes — deploy frontend **and** backend |
+| Manual `workflow_dispatch` | Same as a push to `master` (useful for re-deploys) |
+
+The deploy jobs `needs: test`, so nothing ships unless the full test suite is green.
+Deploys never run on pull requests.
+
+### One-time setup
+
+The frontend deploy works out of the box once Pages is enabled. The backend deploy
+needs AWS access configured via GitHub OIDC (no long-lived AWS keys are stored).
+
+**1. Enable GitHub Pages**
+
+Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+**2. Add repository secrets** (Settings → Secrets and variables → Actions → *Secrets*)
+
+| Secret | Purpose |
+|--------|---------|
+| `YOUTUBE_API_KEY` | Passed to the Lambda as the `YouTubeApiKey` parameter |
+| `AWS_DEPLOY_ROLE_ARN` | ARN of the IAM role Actions assumes via OIDC (see below) |
+
+**3. Add a repository variable** (same page → *Variables*)
+
+| Variable | Example |
+|----------|---------|
+| `AWS_REGION` | `us-east-1` |
+
+**4. (Optional) Configure the `production` environment**
+
+The backend job targets a `production` environment (Settings → Environments). Add
+required reviewers there if you want a manual approval gate before the backend deploys.
+
+### AWS OIDC role
+
+Create an IAM identity provider and a role that GitHub Actions can assume:
+
+1. **IAM → Identity providers → Add provider** (once per AWS account):
+   - Provider URL: `https://token.actions.githubusercontent.com`
+   - Audience: `sts.amazonaws.com`
+2. Create an IAM role with this trust policy (restricts assumption to this repo):
+
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Principal": {
+           "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com"
+         },
+         "Action": "sts:AssumeRoleWithWebIdentity",
+         "Condition": {
+           "StringEquals": { "token.actions.githubusercontent.com:aud": "sts.amazonaws.com" },
+           "StringLike": { "token.actions.githubusercontent.com:sub": "repo:dconstructing/youtubeViewTracker:*" }
+         }
+       }
+     ]
+   }
+   ```
+
+3. Grant the role permission to run the SAM deploy (CloudFormation, Lambda, API
+   Gateway, IAM, and the SAM-managed S3 artifact bucket). `PowerUserAccess` plus
+   `IAMFullAccess` works for a quick start; scope it down for production.
+4. Put the role's ARN in the `AWS_DEPLOY_ROLE_ARN` secret.
+
+> To tighten security further, replace the `sub` condition with
+> `repo:dconstructing/youtubeViewTracker:environment:production` so only the
+> `production` environment can assume the role.
+
 ## Development
 
 ### Available Scripts

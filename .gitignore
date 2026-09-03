@@ -116,6 +116,10 @@ data/
 samconfig.toml
 .serverless/
 
+# Cloudflare Wrangler
+.wrangler/
+.dev.vars
+
 # AWS deployment artifacts (if any)
 *.zip
 cloudformation-output.json

@@ -1,32 +1,10 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { fetchVideoStatistics } from './youtube-stats.js';
 
-export interface VideoStatistics {
-  videoId: string;
-  title: string;
-  channelTitle: string;
-  publishedAt: string;
-  viewCount: string;
-  likeCount: string;
-  commentCount: string;
-  retrievedAt: string;
-}
-
-export interface YouTubeApiResponse {
-  items: Array<{
-    id: string;
-    snippet: {
-      title: string;
-      channelTitle: string;
-      publishedAt: string;
-    };
-    statistics: {
-      viewCount: string;
-      likeCount: string;
-      commentCount: string;
-    };
-  }>;
-}
+// Re-exported so existing importers keep resolving these from this module.
+export type { VideoStatistics, YouTubeApiResponse } from './youtube-stats.js';
+import type { VideoStatistics } from './youtube-stats.js';
 
 export class ViewershipTracker {
   private apiKey: string;
@@ -42,34 +20,7 @@ export class ViewershipTracker {
   }
 
   async fetchVideoStatistics(videoId: string): Promise<VideoStatistics> {
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoId}&key=${this.apiKey}`;
-
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(
-        `YouTube API request failed: ${response.status} ${response.statusText}`
-      );
-    }
-
-    const data = (await response.json()) as YouTubeApiResponse;
-
-    if (!data.items || data.items.length === 0) {
-      throw new Error(`Video not found or not accessible: ${videoId}`);
-    }
-
-    const video = data.items[0];
-
-    return {
-      videoId,
-      title: video.snippet.title,
-      channelTitle: video.snippet.channelTitle,
-      publishedAt: video.snippet.publishedAt,
-      viewCount: video.statistics.viewCount,
-      likeCount: video.statistics.likeCount,
-      commentCount: video.statistics.commentCount,
-      retrievedAt: new Date().toISOString(),
-    };
+    return fetchVideoStatistics(videoId, this.apiKey);
   }
 
   async saveStatisticsToJson(

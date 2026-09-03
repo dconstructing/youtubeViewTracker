@@ -30,6 +30,7 @@
     "**/*.test.ts",
     "web/**/*",
     "src/cli.ts",
-    "src/extract-cli.ts"
+    "src/extract-cli.ts",
+    "src/worker.ts"
   ]
 }

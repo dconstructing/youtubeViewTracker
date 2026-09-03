@@ -18,7 +18,8 @@ A simple TypeScript tool for extracting viewership statistics from YouTube video
 - ✅ **CLI Tool**: Command-line interface for data extraction
 - ✅ **Web Interface**: Simple web frontend with AWS Lambda backend
 - ✅ **AWS Lambda Deployment**: Serverless backend with SAM deployment
-- ✅ **Testing**: 28 test cases covering functionality
+- ✅ **Cloudflare Workers Deployment**: Free-tier serverless backend via Wrangler
+- ✅ **Testing**: 37 test cases covering functionality
 
 ### Technical Details
 - ✅ **TypeScript**: Fully typed with strict TypeScript configuration
@@ -165,6 +166,27 @@ The project includes a modern web interface that connects to an AWS Lambda backe
 
 The web interface connects to the deployed Lambda API automatically.
 
+## Architecture
+
+The `/viewership` API is implemented once in a shared, dependency-free core
+([`src/youtube-stats.ts`](src/youtube-stats.ts)) and served by three
+interchangeable adapters, so the same logic runs everywhere:
+
+| Adapter | Target | Notes |
+|---------|--------|-------|
+| [`src/worker.ts`](src/worker.ts) | Cloudflare Worker | Web `fetch` handler |
+| [`src/lambda-handler.ts`](src/lambda-handler.ts) | AWS Lambda | API Gateway handler |
+| [`src/viewership-tracker.ts`](src/viewership-tracker.ts) | CLI | Also writes JSON reports |
+
+The static frontend in `web/` calls whichever backend `API_BASE_URL` (in
+`web/js/app.js`) points at.
+
+**For contributors:** change fetch/mapping logic in the shared core, not the
+adapters, and keep `youtube-stats.ts` / `extract-video-id.ts` free of Node
+built-ins so they still bundle into the Worker. Count fields are `string | null`
+(`null` = not reported by YouTube → render "Unknown", never `0`). See
+[`CLAUDE.md`](CLAUDE.md) → *Backend Architecture* for the full rationale.
+
 ## AWS Lambda Deployment
 
 This project can be deployed as a serverless API using AWS Lambda and API Gateway.
@@ -294,6 +316,77 @@ The deployed solution includes:
 - **CloudFormation Stack**: Infrastructure as code
 - **S3 Bucket**: Managed bucket for deployment artifacts
 
+## Cloudflare Workers Deployment
+
+The backend can also run as a **Cloudflare Worker** — a free-tier-friendly,
+zero-cost alternative to the AWS Lambda deployment. The Worker in
+[`src/worker.ts`](src/worker.ts) is a like-for-like port of the Lambda handler:
+same request validation, same YouTube Data API call, and the same JSON response
+shape. It uses only the Web-standard `fetch`/`Request`/`Response` APIs, so no
+Node.js polyfills are required.
+
+Both backends can coexist. The intended migration path is to deploy the Worker,
+verify it, and only then repoint the frontend at it — the AWS Lambda stack keeps
+running until you're satisfied.
+
+### Deployment Prerequisites
+
+1. A [Cloudflare account](https://dash.cloudflare.com/sign-up) (the free plan is
+   sufficient — Workers include 100,000 requests/day at no cost).
+2. Wrangler is already included as a dev dependency (`npm install`).
+
+### Quick Deployment
+
+1. **Authenticate Wrangler** (opens a browser once):
+
+   ```bash
+   npx wrangler login
+   ```
+
+2. **Set the YouTube API key as a Worker secret** (not stored in the repo):
+
+   ```bash
+   npx wrangler secret put YOUTUBE_API_KEY
+   ```
+
+3. **Deploy** (runs the test suite first, then publishes):
+
+   ```bash
+   npm run deploy:cloudflare
+   ```
+
+   Wrangler prints the Worker URL, e.g.
+   `https://youtube-viewership-tracker.<your-subdomain>.workers.dev`.
+
+### Local Development
+
+Copy the example secrets file and run the Worker locally:
+
+```bash
+cp .dev.vars.example .dev.vars   # then edit .dev.vars with your API key
+npm run dev:cloudflare           # serves the Worker at http://localhost:8787
+```
+
+### Switching the Frontend to Cloudflare
+
+Once you've verified the Worker, update `API_BASE_URL` in
+[`web/js/app.js`](web/js/app.js) to the Worker's `/viewership` endpoint:
+
+```javascript
+const API_BASE_URL = 'https://youtube-viewership-tracker.<your-subdomain>.workers.dev/viewership';
+```
+
+The API contract is identical, so no other frontend changes are needed. After
+confirming everything works, you can tear down the AWS Lambda stack to eliminate
+its cost.
+
+### Configuration
+
+- [`wrangler.toml`](wrangler.toml) — Worker name, entry point, and compatibility
+  date. The API key is a secret, so it is **not** stored here.
+- The Worker exposes the same endpoints as the Lambda: `GET`/`POST`/`OPTIONS` on
+  `/viewership`.
+
 ## Continuous Integration & Deployment
 
 CI/CD runs through a single GitHub Actions workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
@@ -382,10 +475,12 @@ Create an IAM identity provider and a role that GitHub Actions can assume:
 | `npm run dev` | Watch mode compilation |
 | `npm start` | Run the viewership tracking CLI (primary feature) |
 | `npm run extract` | Run the video ID extraction CLI |
-| `npm test` | Run the test suite (28 tests) |
+| `npm test` | Run the test suite (37 tests) |
 | `npm run typecheck` | Type checking without compilation |
 | `npm run deploy:sam` | Build and deploy to AWS Lambda (PowerUserAccess) |
 | `npm run deploy:sam:admin` | Build and deploy to AWS Lambda (Admin) |
+| `npm run dev:cloudflare` | Run the Cloudflare Worker locally (Wrangler) |
+| `npm run deploy:cloudflare` | Run tests and deploy the Cloudflare Worker |
 
 ### Project Structure
 
@@ -398,7 +493,9 @@ youtubeViewTracker/
 │   ├── viewership-tracker.test.ts  # Viewership tracking tests
 │   ├── cli.ts                      # Primary CLI: Viewership tracking
 │   ├── extract-cli.ts              # Alternative CLI: Video ID extraction
-│   └── lambda-handler.ts           # AWS Lambda function handler
+│   ├── lambda-handler.ts           # AWS Lambda function handler
+│   ├── worker.ts                   # Cloudflare Worker handler
+│   └── worker.test.ts              # Cloudflare Worker tests
 ├── web/                            # Web interface
 │   ├── index.html                  # Main HTML page
 │   ├── css/styles.css              # Stylesheet
@@ -406,9 +503,11 @@ youtubeViewTracker/
 ├── data/                           # Generated viewership reports (gitignored)
 ├── dist/                           # Compiled JavaScript output
 ├── template-simple.yaml            # AWS SAM deployment template
+├── wrangler.toml                   # Cloudflare Worker configuration
 ├── tsconfig.json                   # TypeScript configuration (CLI)
 ├── tsconfig.serverless.json        # TypeScript configuration (Lambda)
 ├── .env.example                    # API key template
+├── .dev.vars.example               # Cloudflare Worker local secrets template
 ├── jest.config.js                  # Jest testing configuration
 ├── package.json                    # Project dependencies and scripts
 └── README.md                       # This file

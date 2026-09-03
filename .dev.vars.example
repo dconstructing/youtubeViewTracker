@@ -1,0 +1,7 @@
+# Cloudflare Worker local development secrets (used by `wrangler dev`).
+# Copy this file to `.dev.vars` and fill in your key. `.dev.vars` is gitignored.
+#
+# In production, set this as a Worker secret instead:
+#   npx wrangler secret put YOUTUBE_API_KEY
+
+YOUTUBE_API_KEY=your_youtube_api_key_here

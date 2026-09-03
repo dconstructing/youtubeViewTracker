@@ -1,0 +1,19 @@
+# Cloudflare Worker configuration for the YouTube Viewership Tracker API.
+#
+# Deploy:        npm run deploy:cloudflare
+# Local dev:     npm run dev:cloudflare
+# Set API key:   npx wrangler secret put YOUTUBE_API_KEY
+#
+# The YOUTUBE_API_KEY is stored as a Worker secret, not in this file.
+# For local development, put it in a .dev.vars file (gitignored):
+#   YOUTUBE_API_KEY=your_youtube_api_key_here
+
+name = "youtube-viewership-tracker"
+main = "src/worker.ts"
+compatibility_date = "2025-09-01"
+
+# Serve the Worker at <name>.<your-subdomain>.workers.dev by default.
+workers_dev = true
+
+[observability]
+enabled = true

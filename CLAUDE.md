@@ -18,11 +18,12 @@ npm test
 ## Code Style
 
 [Biome](https://biomejs.dev) handles both formatting and linting for `src/**/*.ts`
-(config: `biome.json`). `npm test` auto-formats before running Jest.
+(config: `biome.json`).
 
 - `npm run check` - lint + format check, no writes (this is the CI gate)
 - `npm run check:fix` - apply safe lint fixes and formatting
 - The pre-commit hook runs `biome check --write` on staged `src/**/*.ts` via lint-staged.
+- `build` / `test` do not format - keep the tree clean via the hook or `check:fix`.
 
 Fix lint findings rather than suppressing them; if a rule genuinely doesn't fit,
 adjust `linter.rules` in `biome.json` so the intent is visible in review.

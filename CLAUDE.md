@@ -17,8 +17,40 @@ npm test
 
 ## Project Structure
 
-- `extract-video-id.js` - CLI script for extracting YouTube Video IDs from URLs
-- `extract-video-id.test.js` - Test suite for the extraction functionality
+Source is TypeScript ES modules in `src/`, each with a co-located `*.test.ts`:
+
+- `youtube-stats.ts` - shared core: fetches and normalizes video statistics from the YouTube Data API
+- `extract-video-id.ts` - pure helper that parses a video ID out of a YouTube URL
+- `worker.ts` - Cloudflare Worker entry (Web `fetch` handler)
+- `lambda-handler.ts` - AWS Lambda entry (API Gateway handler)
+- `viewership-tracker.ts` - CLI-facing class: shared core plus JSON file output
+- `cli.ts` / `extract-cli.ts` - CLI entry points; Node-only code (e.g. `readline` prompts) lives here
+
+Frontend: `web/` (static HTML/CSS/JS, no build step); `web/js/app.js` calls the deployed backend.
+Deploy config: `wrangler.toml` (Cloudflare Worker), `template-simple.yaml` (AWS SAM / Lambda).
+
+## Backend Architecture
+
+The `/viewership` API is implemented once in the shared core `src/youtube-stats.ts`
+(`fetchVideoStatistics`) and served by three interchangeable adapters that only
+translate each platform's request/response types:
+
+- `worker.ts` -> Cloudflare Worker
+- `lambda-handler.ts` -> AWS Lambda
+- `viewership-tracker.ts` -> CLI (adds JSON file output)
+
+Two invariants keep this working - preserve them:
+
+1. **Keep the shared modules dependency-free.** `youtube-stats.ts` and
+   `extract-video-id.ts` must not import Node built-ins (`fs`, `path`,
+   `readline`, ...) or they will not bundle into the Cloudflare Worker. Put
+   Node-only code in the `*-cli.ts` entry points. Verify a change bundles with
+   `npx wrangler deploy --dry-run -c wrangler.toml`.
+2. **Counts can be `null`.** `viewCount` / `likeCount` / `commentCount` are
+   typed `string | null`; `null` means YouTube did not report the value (hidden
+   likes, disabled comments). Render it as "Unknown" - never coerce to `0`.
+
+Change fetch or field-mapping logic in the shared core, not in the adapters.
 
 ## Development Workflow
 

@@ -166,6 +166,27 @@ The project includes a modern web interface that connects to an AWS Lambda backe
 
 The web interface connects to the deployed Lambda API automatically.
 
+## Architecture
+
+The `/viewership` API is implemented once in a shared, dependency-free core
+([`src/youtube-stats.ts`](src/youtube-stats.ts)) and served by three
+interchangeable adapters, so the same logic runs everywhere:
+
+| Adapter | Target | Notes |
+|---------|--------|-------|
+| [`src/worker.ts`](src/worker.ts) | Cloudflare Worker | Web `fetch` handler |
+| [`src/lambda-handler.ts`](src/lambda-handler.ts) | AWS Lambda | API Gateway handler |
+| [`src/viewership-tracker.ts`](src/viewership-tracker.ts) | CLI | Also writes JSON reports |
+
+The static frontend in `web/` calls whichever backend `API_BASE_URL` (in
+`web/js/app.js`) points at.
+
+**For contributors:** change fetch/mapping logic in the shared core, not the
+adapters, and keep `youtube-stats.ts` / `extract-video-id.ts` free of Node
+built-ins so they still bundle into the Worker. Count fields are `string | null`
+(`null` = not reported by YouTube → render "Unknown", never `0`). See
+[`CLAUDE.md`](CLAUDE.md) → *Backend Architecture* for the full rationale.
+
 ## AWS Lambda Deployment
 
 This project can be deployed as a serverless API using AWS Lambda and API Gateway.

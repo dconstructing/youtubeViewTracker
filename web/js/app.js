@@ -1,5 +1,52 @@
-// Configuration - deployed Cloudflare Worker endpoint
-const API_BASE_URL = 'https://youtube-viewership-tracker.losttime-shuffle.workers.dev/viewership';
+// Available backends. Both URLs are baked in so the active one can be switched
+// at runtime (no redeploy) via the header dropdown, a ?backend= query param, or
+// a remembered localStorage choice. Both endpoints send permissive CORS headers.
+const BACKENDS = {
+    cloudflare: {
+        label: 'Cloudflare Worker',
+        url: 'https://youtube-viewership-tracker.losttime-shuffle.workers.dev/viewership',
+    },
+    lambda: {
+        label: 'AWS Lambda',
+        url: 'https://293sk7u4e3.execute-api.us-east-2.amazonaws.com/viewership',
+    },
+};
+const DEFAULT_BACKEND = 'cloudflare';
+const BACKEND_STORAGE_KEY = 'yvt.backend';
+
+function readStoredBackend() {
+    try {
+        return localStorage.getItem(BACKEND_STORAGE_KEY);
+    } catch (error) {
+        return null; // localStorage may be unavailable (e.g. private mode).
+    }
+}
+
+function storeBackend(key) {
+    try {
+        localStorage.setItem(BACKEND_STORAGE_KEY, key);
+    } catch (error) {
+        // Ignore - the selection just won't persist across reloads.
+    }
+}
+
+// Resolve the active backend: a valid ?backend= wins (and is remembered), then
+// the stored choice, then the default.
+function resolveBackend() {
+    const fromQuery = new URLSearchParams(window.location.search).get('backend');
+    if (fromQuery && Object.hasOwn(BACKENDS, fromQuery)) {
+        storeBackend(fromQuery);
+        return fromQuery;
+    }
+    const stored = readStoredBackend();
+    if (stored && Object.hasOwn(BACKENDS, stored)) {
+        return stored;
+    }
+    return DEFAULT_BACKEND;
+}
+
+const activeBackend = resolveBackend();
+let API_BASE_URL = BACKENDS[activeBackend].url;
 
 // DOM elements
 const videoForm = document.getElementById('video-form');
@@ -10,6 +57,7 @@ const loadingSpinner = document.querySelector('.loading-spinner');
 const errorMessage = document.getElementById('error-message');
 const resultsSection = document.getElementById('results-section');
 const copyJsonBtn = document.getElementById('copy-json');
+const backendSelect = document.getElementById('backend-select');
 
 // Result elements
 const viewCount = document.getElementById('view-count');
@@ -22,6 +70,24 @@ const retrievedDate = document.getElementById('retrieved-date');
 const jsonOutput = document.getElementById('json-output');
 
 let currentData = null;
+
+// Populate and wire the backend selector so it can be switched without a redeploy.
+if (backendSelect) {
+    for (const [key, config] of Object.entries(BACKENDS)) {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = config.label;
+        backendSelect.appendChild(option);
+    }
+    backendSelect.value = activeBackend;
+    backendSelect.addEventListener('change', () => {
+        const key = backendSelect.value;
+        if (!Object.hasOwn(BACKENDS, key)) return;
+        API_BASE_URL = BACKENDS[key].url;
+        storeBackend(key);
+        console.log('Switched backend to', key, API_BASE_URL);
+    });
+}
 
 // Utility functions
 function formatNumber(num) {

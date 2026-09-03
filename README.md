@@ -40,7 +40,7 @@ A simple TypeScript tool for extracting viewership statistics from YouTube video
 
 ### Prerequisites
 
-- Node.js 22 or higher (see `.nvmrc`)
+- Node.js 24 or higher (see `.nvmrc`)
 - npm
 - YouTube Data API v3 key (for viewership tracking)
 - AWS CLI configured with appropriate permissions (for Lambda deployment)

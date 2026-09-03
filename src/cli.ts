@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import 'dotenv/config';
+import readline from 'node:readline';
 import { extractVideoId } from './extract-video-id.js';
 import { createViewershipReport } from './viewership-tracker.js';
-import readline from 'readline';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -64,16 +64,16 @@ async function processInput(input: string): Promise<void> {
     console.log(`✅ Viewership data saved to: ${outputPath}`);
 
     // Read and display data
-    const fs = await import('fs/promises');
+    const fs = await import('node:fs/promises');
     const data = JSON.parse(await fs.readFile(outputPath, 'utf-8'));
 
     console.log('\n📊 Summary:');
     console.log(`Title: ${data.title}`);
     console.log(`Channel: ${data.channelTitle}`);
-    console.log(`View Count: ${parseInt(data.viewCount).toLocaleString()}`);
-    console.log(`Like Count: ${parseInt(data.likeCount).toLocaleString()}`);
+    console.log(`View Count: ${parseInt(data.viewCount, 10).toLocaleString()}`);
+    console.log(`Like Count: ${parseInt(data.likeCount, 10).toLocaleString()}`);
     console.log(
-      `Comment Count: ${parseInt(data.commentCount).toLocaleString()}`
+      `Comment Count: ${parseInt(data.commentCount, 10).toLocaleString()}`
     );
     console.log(
       `Published: ${new Date(data.publishedAt).toLocaleDateString()}`

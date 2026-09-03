@@ -1,9 +1,10 @@
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { fetchVideoStatistics } from './youtube-stats.js';
 
 // Re-exported so existing importers keep resolving these from this module.
 export type { VideoStatistics, YouTubeApiResponse } from './youtube-stats.js';
+
 import type { VideoStatistics } from './youtube-stats.js';
 
 export class ViewershipTracker {

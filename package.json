@@ -11,8 +11,12 @@
     "extract": "npm run format && tsc && node dist/extract-cli.js",
     "test": "npm run format && jest",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
+    "format": "biome format --write src",
+    "format:check": "biome format src",
+    "lint": "biome lint src",
+    "lint:fix": "biome lint --write src",
+    "check": "biome check src",
+    "check:fix": "biome check --write src",
     "prepare": "husky",
     "deploy:sam": "npm run build:lambda && sam deploy --template-file template-simple.yaml --stack-name youtube-viewership-tracker --capabilities CAPABILITY_IAM --parameter-overrides YouTubeApiKey=$YOUTUBE_API_KEY --profile PowerUserAccess-316490106252 --resolve-s3",
     "deploy:sam:admin": "npm run build:lambda && sam deploy --template-file template-simple.yaml --stack-name youtube-viewership-tracker --capabilities CAPABILITY_IAM --parameter-overrides YouTubeApiKey=$YOUTUBE_API_KEY --profile admin --resolve-s3",
@@ -24,14 +28,13 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@biomejs/biome": "2.5.11",
     "@types/aws-lambda": "^8.10.152",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.15",
-    "@typescript-eslint/parser": "^8.38.0",
     "husky": "^9.1.7",
     "jest": "^30.0.4",
     "lint-staged": "^16.1.2",
-    "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",
     "wrangler": "^4.128.0"
@@ -42,7 +45,7 @@
   },
   "lint-staged": {
     "src/**/*.ts": [
-      "prettier --write"
+      "biome check --write --no-errors-on-unmatched"
     ]
   }
 }

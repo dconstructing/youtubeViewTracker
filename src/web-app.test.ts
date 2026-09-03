@@ -1,6 +1,6 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import vm from 'vm';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import vm from 'node:vm';
 
 /**
  * Regression tests for the static frontend (web/js/app.js). That file is plain
@@ -37,13 +37,16 @@ function makeElement(): StubElement {
     value: '',
     children,
     addEventListener(event, handler) {
-      (listeners[event] ??= []).push(handler);
+      listeners[event] ??= [];
+      listeners[event].push(handler);
     },
     appendChild(child) {
       children.push(child);
     },
     dispatch(event, arg) {
-      (listeners[event] ?? []).forEach(handler => handler(arg));
+      for (const handler of listeners[event] ?? []) {
+        handler(arg);
+      }
     },
   };
 }

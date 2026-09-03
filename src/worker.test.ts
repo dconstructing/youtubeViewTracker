@@ -1,4 +1,4 @@
-import worker, { Env } from './worker.js';
+import worker, { type Env } from './worker.js';
 import type { VideoStatistics } from './youtube-stats.js';
 
 interface ParsedResponse {

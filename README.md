@@ -40,7 +40,7 @@ A simple TypeScript tool for extracting viewership statistics from YouTube video
 
 ### Prerequisites
 
-- Node.js (version 16 or higher)
+- Node.js 22 or higher (see `.nvmrc`)
 - npm
 - YouTube Data API v3 key (for viewership tracking)
 - AWS CLI configured with appropriate permissions (for Lambda deployment)
@@ -393,7 +393,7 @@ CI/CD runs through a single GitHub Actions workflow: [`.github/workflows/ci.yml`
 
 | Trigger | What runs |
 |---------|-----------|
-| Pull request into `master` | CI gate only: `format:check` → `typecheck` → `build:lambda` → `jest` |
+| Pull request into `master` | CI gate only: `check` (Biome lint + format) → `typecheck` → `build:lambda` → `jest` |
 | Push to `master` (PR merge) | CI gate, then — only if it passes — deploy frontend **and** backend |
 | Manual `workflow_dispatch` | Same as a push to `master` (useful for re-deploys) |
 
@@ -477,6 +477,10 @@ Create an IAM identity provider and a role that GitHub Actions can assume:
 | `npm run extract` | Run the video ID extraction CLI |
 | `npm test` | Run the test suite (37 tests) |
 | `npm run typecheck` | Type checking without compilation |
+| `npm run check` | Biome lint + format check (no writes) — the CI gate |
+| `npm run check:fix` | Apply Biome's safe lint fixes and formatting |
+| `npm run format` | Format `src/` with Biome |
+| `npm run lint` | Lint `src/` with Biome |
 | `npm run deploy:sam` | Build and deploy to AWS Lambda (PowerUserAccess) |
 | `npm run deploy:sam:admin` | Build and deploy to AWS Lambda (Admin) |
 | `npm run dev:cloudflare` | Run the Cloudflare Worker locally (Wrangler) |

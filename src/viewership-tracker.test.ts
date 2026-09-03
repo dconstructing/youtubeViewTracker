@@ -1,9 +1,9 @@
+import fs from 'node:fs/promises';
 import {
-  ViewershipTracker,
   createViewershipReport,
-  VideoStatistics,
+  type VideoStatistics,
+  ViewershipTracker,
 } from './viewership-tracker.js';
-import fs from 'fs/promises';
 
 // Mock fetch for testing
 global.fetch = jest.fn();

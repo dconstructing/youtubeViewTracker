@@ -1,7 +1,7 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { extractVideoId } from './extract-video-id';
-import { fetchVideoStatistics } from './youtube-stats';
 import type { VideoStatistics } from './youtube-stats';
+import { fetchVideoStatistics } from './youtube-stats';
 
 interface LambdaRequestBody {
   url?: string;
@@ -23,9 +23,12 @@ const corsHeaders = {
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  // Handle CORS preflight - check both httpMethod and requestContext for compatibility
+  // Handle CORS preflight - check both httpMethod and requestContext for compatibility.
+  // API Gateway v2 (HTTP API) reports the verb at requestContext.http.method, which
+  // is not on the v1 APIGatewayProxyEvent type.
   const method =
-    event.httpMethod || (event.requestContext as any)?.http?.method;
+    event.httpMethod ||
+    (event.requestContext as { http?: { method?: string } })?.http?.method;
   if (method === 'OPTIONS') {
     return {
       statusCode: 200,

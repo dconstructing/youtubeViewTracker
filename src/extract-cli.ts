@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import readline from 'readline';
+import readline from 'node:readline';
 import { extractVideoId } from './extract-video-id.js';
 
 export function promptForUrl(): void {

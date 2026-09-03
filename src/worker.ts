@@ -1,6 +1,6 @@
 import { extractVideoId } from './extract-video-id.js';
-import { fetchVideoStatistics } from './youtube-stats.js';
 import type { VideoStatistics } from './youtube-stats.js';
+import { fetchVideoStatistics } from './youtube-stats.js';
 
 /**
  * Environment bindings for the Cloudflare Worker.

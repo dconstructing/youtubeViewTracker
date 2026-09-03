@@ -15,7 +15,7 @@ Resources:
     Properties:
       CodeUri: dist/
       Handler: lambda-handler.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs22.x
       Timeout: 30
       Environment:
         Variables:

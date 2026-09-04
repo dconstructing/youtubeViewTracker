@@ -42,7 +42,13 @@ export const handler = async (
     let requestBody: LambdaRequestBody = {};
 
     if (event.body) {
-      requestBody = JSON.parse(event.body);
+      // API Gateway REST APIs with binary media types configured (or some
+      // proxies/clients) base64-encode the body and set isBase64Encoded;
+      // JSON.parse on the raw base64 string would throw.
+      const rawBody = event.isBase64Encoded
+        ? Buffer.from(event.body, 'base64').toString('utf-8')
+        : event.body;
+      requestBody = JSON.parse(rawBody);
     }
 
     // Extract video ID from URL parameter or request body

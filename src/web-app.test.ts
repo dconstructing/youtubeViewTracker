@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import vm from 'node:vm';
+import { describe, expect, test } from 'vitest';
 
 /**
  * Regression tests for the static frontend (web/js/app.js). That file is plain

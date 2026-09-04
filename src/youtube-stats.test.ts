@@ -1,7 +1,15 @@
+import {
+  beforeEach,
+  describe,
+  expect,
+  type MockedFunction,
+  test,
+  vi,
+} from 'vitest';
 import { fetchVideoStatistics } from './youtube-stats.js';
 
-global.fetch = jest.fn();
-const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
+global.fetch = vi.fn();
+const mockFetch = fetch as MockedFunction<typeof fetch>;
 
 const videoId = 'dQw4w9WgXcQ';
 const apiKey = 'test-api-key';
@@ -23,7 +31,7 @@ function fullItem(statistics: Record<string, string>) {
 }
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 describe('fetchVideoStatistics', () => {

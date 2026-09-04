@@ -1,17 +1,31 @@
 import fs from 'node:fs/promises';
 import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  type Mocked,
+  type MockedFunction,
+  test,
+  vi,
+} from 'vitest';
+import {
   createViewershipReport,
   type VideoStatistics,
   ViewershipTracker,
 } from './viewership-tracker.js';
 
 // Mock fetch for testing
-global.fetch = jest.fn();
-const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
+global.fetch = vi.fn();
+const mockFetch = fetch as MockedFunction<typeof fetch>;
 
-// Mock fs for testing
-jest.mock('fs/promises');
-const mockFs = fs as jest.Mocked<typeof fs>;
+// Mock fs for testing. The specifier here must match the one
+// viewership-tracker.ts actually imports ('node:fs/promises'), or vi.mock
+// mocks a different module registration and this silently stops intercepting
+// calls - mockFs.mkdir/writeFile assertions below would fail (or, worse, the
+// real fs would run) instead of raising a mocking error.
+vi.mock('node:fs/promises');
+const mockFs = fs as Mocked<typeof fs>;
 
 describe('ViewershipTracker', () => {
   let tracker: ViewershipTracker;
@@ -21,7 +35,7 @@ describe('ViewershipTracker', () => {
 
   beforeEach(() => {
     tracker = new ViewershipTracker(mockApiKey);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env = { ...originalEnv };
   });
 
@@ -266,7 +280,7 @@ describe('createViewershipReport', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockFs.mkdir.mockResolvedValue(undefined);
     mockFs.writeFile.mockResolvedValue();
     process.env = { ...originalEnv };

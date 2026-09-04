@@ -15,6 +15,12 @@ After modifying any JavaScript file in this project:
 npm test
 ```
 
+Tests run on Vitest, which transpiles via esbuild and does **not** type-check.
+`npm test` passing is not proof the test files themselves type-check - run
+`npm run typecheck` too (it checks `src/**/*` including `*.test.ts`, via
+`tsconfig.typecheck.json`; the default `tsconfig.json` excludes tests so `tsc`
+doesn't emit them into `dist/`).
+
 ## Code Style
 
 [Biome](https://biomejs.dev) handles both formatting and linting for `src/**/*.ts`

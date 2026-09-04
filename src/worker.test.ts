@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import worker, { type Env } from './worker.js';
 import type { VideoStatistics } from './youtube-stats.js';
 
@@ -32,7 +33,7 @@ const sampleApiResponse = {
 };
 
 function mockFetch(response: unknown, ok = true, status = 200): void {
-  globalThis.fetch = jest.fn().mockResolvedValue({
+  globalThis.fetch = vi.fn().mockResolvedValue({
     ok,
     status,
     statusText: ok ? 'OK' : 'Error',
@@ -44,7 +45,7 @@ const originalFetch = globalThis.fetch;
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('worker fetch handler', () => {

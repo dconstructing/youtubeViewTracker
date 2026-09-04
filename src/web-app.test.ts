@@ -120,6 +120,12 @@ describe('web/js/app.js formatNumber', () => {
     expect(formatNumber('not-a-number')).toBe('Unknown');
   });
 
+  test('renders "Unknown" for a partially-numeric value rather than truncating it', () => {
+    // parseInt("123abc", 10) is 123 - junk suffixes must be rejected
+    // outright instead of silently parsed down to a wrong number.
+    expect(formatNumber('123abc')).toBe('Unknown');
+  });
+
   test('preserves a genuine zero as "0", not "Unknown"', () => {
     expect(formatNumber('0')).toBe('0');
   });

@@ -4,6 +4,26 @@ import 'dotenv/config';
 import readline from 'node:readline';
 import { extractVideoId } from './extract-video-id.js';
 import { createViewershipReport } from './viewership-tracker.js';
+import type { VideoStatistics } from './youtube-stats.js';
+
+/**
+ * Render a count field for display. Counts are null when YouTube doesn't
+ * report them (hidden likes, disabled comments) - render that as "Unknown"
+ * rather than a misleading 0 or NaN. Only digit strings are treated as
+ * valid; anything else (including partially-numeric junk like "123abc") is
+ * "Unknown" too, rather than silently truncated by parseInt.
+ *
+ * Kept CLI-local rather than in the shared core since this is display
+ * formatting, not fetch/normalize logic, and cli.ts is its only consumer.
+ * Mirrors formatNumber() in web/js/app.js - that file has no build step and
+ * can't import this, so keep the two in sync by hand if this rule changes.
+ */
+export function formatCount(count: string | null): string {
+  if (count === null || !/^\d+$/.test(count)) {
+    return 'Unknown';
+  }
+  return parseInt(count, 10).toLocaleString();
+}
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -65,16 +85,16 @@ async function processInput(input: string): Promise<void> {
 
     // Read and display data
     const fs = await import('node:fs/promises');
-    const data = JSON.parse(await fs.readFile(outputPath, 'utf-8'));
+    const data: VideoStatistics = JSON.parse(
+      await fs.readFile(outputPath, 'utf-8')
+    );
 
     console.log('\n📊 Summary:');
     console.log(`Title: ${data.title}`);
     console.log(`Channel: ${data.channelTitle}`);
-    console.log(`View Count: ${parseInt(data.viewCount, 10).toLocaleString()}`);
-    console.log(`Like Count: ${parseInt(data.likeCount, 10).toLocaleString()}`);
-    console.log(
-      `Comment Count: ${parseInt(data.commentCount, 10).toLocaleString()}`
-    );
+    console.log(`View Count: ${formatCount(data.viewCount)}`);
+    console.log(`Like Count: ${formatCount(data.likeCount)}`);
+    console.log(`Comment Count: ${formatCount(data.commentCount)}`);
     console.log(
       `Published: ${new Date(data.publishedAt).toLocaleDateString()}`
     );

@@ -1,5 +1,39 @@
-import { describe, expect, test } from 'vitest';
-import { formatCount } from './cli.js';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { formatCount, loadEnv } from './cli.js';
+
+describe('loadEnv', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  test('does not throw when .env is absent (ENOENT)', () => {
+    vi.spyOn(process, 'loadEnvFile').mockImplementation(() => {
+      throw Object.assign(new Error('no such file'), { code: 'ENOENT' });
+    });
+
+    expect(() => loadEnv()).not.toThrow();
+  });
+
+  test('rethrows errors other than ENOENT (e.g. a malformed .env)', () => {
+    vi.spyOn(process, 'loadEnvFile').mockImplementation(() => {
+      throw Object.assign(new Error('invalid syntax'), {
+        code: 'ERR_INVALID_ARG_VALUE',
+      });
+    });
+
+    expect(() => loadEnv()).toThrow('invalid syntax');
+  });
+
+  test('loads the .env file when present', () => {
+    const loadEnvFile = vi
+      .spyOn(process, 'loadEnvFile')
+      .mockImplementation(() => {});
+
+    loadEnv();
+
+    expect(loadEnvFile).toHaveBeenCalledOnce();
+  });
+});
 
 describe('formatCount', () => {
   test('renders null as Unknown', () => {

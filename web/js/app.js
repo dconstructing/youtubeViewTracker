@@ -90,14 +90,19 @@ if (backendSelect) {
 }
 
 // Utility functions
+// Mirrors formatCount() in src/cli.ts - this file has no build step and
+// can't import that module, so keep the two in sync by hand if this rule
+// changes.
 function formatNumber(num) {
     // The API returns null for counts YouTube doesn't report (e.g. likes
     // hidden or comments disabled) - show "Unknown" rather than a false 0.
-    if (num === null || num === undefined) {
+    // Only digit strings count as valid; anything else (including
+    // partially-numeric junk like "123abc") is "Unknown" too, rather than
+    // silently truncated by parseInt.
+    if (num === null || num === undefined || !/^\d+$/.test(num)) {
         return 'Unknown';
     }
-    const parsed = parseInt(num, 10);
-    return Number.isNaN(parsed) ? 'Unknown' : parsed.toLocaleString();
+    return parseInt(num, 10).toLocaleString();
 }
 
 function formatDate(dateString) {

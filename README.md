@@ -526,7 +526,7 @@ The project includes comprehensive tests covering all functionality:
 npm test
 ```
 
-**Test Coverage (61 total tests across 5 files, one per `src/*.test.ts`):**
+**Test Coverage (67 total tests across 6 files, one per `src/*.test.ts`):**
 
 *Video ID Extraction:*
 - ✅ Standard watch URLs
@@ -547,6 +547,12 @@ npm test
 - ✅ File system operations
 - ✅ Timestamp formatting
 - ✅ Custom output directories
+
+*CLI display formatting (`cli.ts`):*
+- ✅ `null` count renders "Unknown" (not `NaN`)
+- ✅ Non-numeric and partially-numeric strings (e.g. `"123abc"`) render "Unknown" rather than a truncated number
+- ✅ Genuine zero renders `"0"`
+- ✅ Large counts render with locale grouping
 
 *YouTube Stats (shared core):*
 - ✅ Field mapping from the YouTube API response

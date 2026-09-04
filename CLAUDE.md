@@ -68,6 +68,10 @@ Two invariants keep this working - preserve them:
 2. **Counts can be `null`.** `viewCount` / `likeCount` / `commentCount` are
    typed `string | null`; `null` means YouTube did not report the value (hidden
    likes, disabled comments). Render it as "Unknown" - never coerce to `0`.
+   The render rule itself (`null` or non-digit-string -> "Unknown") is
+   implemented twice, by necessity: `formatCount` in `cli.ts` and
+   `formatNumber` in `web/js/app.js`. They can't share code - `web/` has no
+   build step and can't import from `src/*.ts` - so keep them in sync by hand.
 
 Change fetch or field-mapping logic in the shared core, not in the adapters.
 

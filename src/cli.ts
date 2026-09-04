@@ -83,7 +83,7 @@ async function processInput(input: string): Promise<void> {
   let videoId: string | null = null;
 
   // Check if input is already a video ID (11 characters, alphanumeric + - and _)
-  if (input.match(/^[a-zA-Z0-9_-]{11}$/)) {
+  if (/^[a-zA-Z0-9_-]{11}$/.test(input)) {
     videoId = input;
   } else {
     // Try to extract video ID from URL

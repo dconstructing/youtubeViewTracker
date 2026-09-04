@@ -79,7 +79,7 @@ export const handler = async (
     }
 
     // Validate video ID format
-    if (!videoId.match(/^[a-zA-Z0-9_-]{11}$/)) {
+    if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
       const response: LambdaResponse = {
         success: false,
         error: 'Invalid video ID format. Must be 11 characters long.',

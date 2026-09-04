@@ -393,7 +393,7 @@ CI/CD runs through a single GitHub Actions workflow: [`.github/workflows/ci.yml`
 
 | Trigger | What runs |
 |---------|-----------|
-| Pull request into `master` | CI gate only: `check` (Biome lint + format) → `typecheck` → `build:lambda` → `jest` |
+| Pull request into `master` | CI gate only: `check` (Biome lint + format) → `typecheck` → `build:lambda` → `vitest` |
 | Push to `master` (PR merge) | CI gate, then — only if it passes — deploy frontend **and** backend |
 | Manual `workflow_dispatch` | Same as a push to `master` (useful for re-deploys) |
 
@@ -475,7 +475,7 @@ Create an IAM identity provider and a role that GitHub Actions can assume:
 | `npm run dev` | Watch mode compilation |
 | `npm start` | Run the viewership tracking CLI (primary feature) |
 | `npm run extract` | Run the video ID extraction CLI |
-| `npm test` | Run the test suite (37 tests) |
+| `npm test` | Run the test suite (61 tests) |
 | `npm run typecheck` | Type checking without compilation |
 | `npm run check` | Biome lint + format check (no writes) — the CI gate |
 | `npm run check:fix` | Apply Biome's safe lint fixes and formatting |
@@ -510,9 +510,10 @@ youtubeViewTracker/
 ├── wrangler.toml                   # Cloudflare Worker configuration
 ├── tsconfig.json                   # TypeScript configuration (CLI)
 ├── tsconfig.serverless.json        # TypeScript configuration (Lambda)
+├── tsconfig.typecheck.json         # TypeScript configuration (typecheck, incl. tests)
 ├── .env.example                    # API key template
 ├── .dev.vars.example               # Cloudflare Worker local secrets template
-├── jest.config.js                  # Jest testing configuration
+├── vitest.config.ts                # Vitest testing configuration
 ├── package.json                    # Project dependencies and scripts
 └── README.md                       # This file
 ```
@@ -525,9 +526,9 @@ The project includes comprehensive tests covering all functionality:
 npm test
 ```
 
-**Test Coverage (28 total tests):**
+**Test Coverage (61 total tests across 5 files, one per `src/*.test.ts`):**
 
-*Video ID Extraction (11 tests):*
+*Video ID Extraction:*
 - ✅ Standard watch URLs
 - ✅ Short URLs (youtu.be)
 - ✅ Embed URLs
@@ -538,7 +539,7 @@ npm test
 - ✅ Invalid URL handling
 - ✅ Different Video ID formats
 
-*Viewership Tracking (17 tests):*
+*Viewership Tracking (CLI adapter):*
 - ✅ API key management (environment variables)
 - ✅ YouTube API integration
 - ✅ Error handling (network failures, invalid videos)
@@ -546,6 +547,21 @@ npm test
 - ✅ File system operations
 - ✅ Timestamp formatting
 - ✅ Custom output directories
+
+*YouTube Stats (shared core):*
+- ✅ Field mapping from the YouTube API response
+- ✅ `null` vs `'0'` for view/like/comment counts (hidden likes, disabled comments, genuine zero)
+- ✅ API failure and network-error propagation
+
+*Cloudflare Worker adapter:*
+- ✅ CORS preflight and headers on every response
+- ✅ Video ID from query param, YouTube URL, or POST body
+- ✅ Request validation and upstream-error status codes
+
+*Web frontend (`web/js/app.js`, loaded in a `vm` sandbox):*
+- ✅ Number formatting (`Unknown` vs `0` vs locale-formatted)
+- ✅ Backend selection precedence (`?backend=` > localStorage > default)
+- ✅ Backend dropdown wiring, including rejection of inherited `Object.prototype` keys
 
 ## JSON Report Format
 
@@ -593,6 +609,6 @@ ISC License
 ## Technical Details
 
 - **TypeScript**: ES2022 target with strict type checking
-- **Testing**: Jest with ts-jest for TypeScript support
+- **Testing**: Vitest (esbuild-based, no ts-jest/babel/istanbul chain)
 - **Modules**: ES Modules with .js extensions for compatibility
 - **Build**: TypeScript compiler with source maps and declarations

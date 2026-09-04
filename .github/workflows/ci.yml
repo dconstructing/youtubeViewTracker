@@ -43,7 +43,7 @@ jobs:
         run: npm run build:lambda
 
       - name: Run tests
-        run: npx jest
+        run: npx vitest run
 
   # --- Deploy the static frontend to GitHub Pages (master only) ---
   deploy-frontend:

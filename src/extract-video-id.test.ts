@@ -1,3 +1,4 @@
+import { describe, expect, test } from 'vitest';
 import { extractVideoId } from './extract-video-id.js';
 
 describe('extractVideoId', () => {

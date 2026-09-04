@@ -1,10 +1,31 @@
 #!/usr/bin/env node
 
-import 'dotenv/config';
 import readline from 'node:readline';
 import { extractVideoId } from './extract-video-id.js';
 import { createViewershipReport } from './viewership-tracker.js';
 import type { VideoStatistics } from './youtube-stats.js';
+
+/**
+ * .env is optional - process.loadEnvFile throws ENOENT when absent (e.g. CI,
+ * or a shell that already exports YOUTUBE_API_KEY), unlike dotenv's config(),
+ * which stays silent. Swallow that case to match; anything else (including a
+ * malformed .env) is real and propagates to main()'s catch below.
+ *
+ * Note: unlike dotenv, this doesn't strip a UTF-8 BOM, so a .env saved with
+ * one (e.g. by Windows Notepad) will silently fail to set YOUTUBE_API_KEY.
+ *
+ * Called from main(), not at module scope, so importing this file (as the
+ * test suite does for formatCount) never triggers a real env-file read.
+ */
+export function loadEnv(): void {
+  try {
+    process.loadEnvFile();
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
+  }
+}
 
 /**
  * Render a count field for display. Counts are null when YouTube doesn't
@@ -26,6 +47,8 @@ export function formatCount(count: string | null): string {
 }
 
 async function main(): Promise<void> {
+  loadEnv();
+
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
